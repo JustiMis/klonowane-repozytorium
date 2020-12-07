@@ -276,11 +276,11 @@
       const newValue = parseInt(value);
 
       /*TODO: Add validation */
-      if(newValue != thisWidget.value ||
-         newValue >= settings.amountWidget.defaultMin ||
-         newValue <= settings.amountWidget.defaultMin){
 
-        thisWidget.value = newValue;
+      if(thisWidget.value = newValue){
+        newValue != thisWidget.value ||
+        newValue >= settings.amountWidget.defaultMin ||
+        newValue <= settings.amountWidget.defaultMin;
         thisWidget.announce();
       }
 
