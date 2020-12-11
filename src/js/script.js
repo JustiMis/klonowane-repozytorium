@@ -71,6 +71,11 @@
     cart: {
       defaultDeliveryFee: 20,
     },
+    db: {
+      url: '//localhost:3131',
+      product: 'product',
+      order: 'order',
+    },
   };
 
   const templates = {
@@ -242,7 +247,6 @@
       thisProduct.name = thisProduct.data.name;
       thisProduct.amount = thisProduct.amountWidget.value;
 
-      console.log('czymjestapp:', app);
       app.cart.add(thisProduct);
     }
 
@@ -275,16 +279,13 @@
 
       const newValue = parseInt(value);
 
-      /*TODO: Add validation */
-
-      if(thisWidget.value = newValue){
-        newValue != thisWidget.value ||
-        newValue >= settings.amountWidget.defaultMin ||
-        newValue <= settings.amountWidget.defaultMin;
+      if(newValue != thisWidget.value && newValue >= settings.amountWidget.defaultMin && newValue <= settings.amountWidget.defaultMax){
+        thisWidget.value = newValue;
         thisWidget.announce();
       }
 
       thisWidget.input.value = thisWidget.value;
+
     }
 
     initActions(){
@@ -335,11 +336,25 @@
       thisCart.dom.wrapper = element;
       thisCart.dom.toggleTrigger = element.querySelector(select.cart.toggleTrigger);
       thisCart.dom.productList = element.querySelector(select.cart.productList);
+      thisCart.dom.form = element.querySelector(select.cart.form);
+      thisCart.dom.phone = element.querySelector(select.cart.phone);
+      thisCart.dom.address = element.querySelector(select.cart.address);
 
       thisCart.renderTotalKeys = ['totalNumber', 'totalPrice', 'subtotalPrice', 'deliveryFee'];
 
       for(let key of thisCart.renderTotalKeys){
         thisCart.dom[key] = thisCart.dom.wrapper.querySelectorAll(select.cart[key]);
+      }
+
+      const payload = {
+        update: 'renderTotalKeys',
+        phone: 'phone',
+        address: 'address',
+        products: '',
+      }
+
+      for(let product of thisCart.products){
+        product
       }
     }
 
@@ -354,7 +369,11 @@
       });
       thisCart.dom.productList.addEventListener('remove', function(event){
         thisCart.remove(event.detail.cartProduct);
-      } );
+      });
+      thisCart.dom.form.addEventListener('submit', function(event){
+        event.preventDefault();
+        thisCart.sendOrder();
+      });
 
     }
 
@@ -401,6 +420,31 @@
       const index = thisCart.products.indexOf(cartProduct);
       thisCart.products.splice(index, 1);
 
+    }
+
+    sendOrder(){
+      const thisCart = this;
+      const url = settings.db.url + '/' + settings.db.order;
+
+      const payload = {
+        address: 'test',
+        totalPrice: thisCart.totalPrice,
+      };
+
+      const options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      };
+
+      fetch(url, options)
+        .then(function(response){
+          return response.json();
+        }).then(function(parsedResponse){
+          console.log('parsedResponse', parsedResponse);
+        });
     }
 
 
@@ -486,7 +530,7 @@
       // console.log('thisApp.data:', thisApp.data);
 
       for(let productData in thisApp.data.products){
-        new Product(productData, thisApp.data.products[productData]);
+        new Product(thisApp.data.products[productData].id, thisApp.data.products[productData]);
       }
     },
 
@@ -500,7 +544,25 @@
     initData: function(){
       const thisApp = this;
 
-      thisApp.data = dataSource;
+      thisApp.data = {};
+
+      const url = settings.db.url + '/' + settings.db.product;
+
+      fetch(url)
+        .then(function(rawResponse){
+          return rawResponse.json();
+        })
+        .then(function(parsedResponse){
+          console.log('parsedResponse', parsedResponse);
+
+          /*save parsedResponse as thisApp.data.products */
+          thisApp.data.products = parsedResponse;
+          /* execute initMenu method */
+          thisApp.initMenu();
+
+        });
+
+      console.log('thisApp.data', JSON.stringify(thisApp.data));
     },
 
     init: function(){
@@ -512,7 +574,6 @@
       console.log('templates:', templates);
 
       thisApp.initData();
-      thisApp.initMenu();
       thisApp.initCart();
     },
 
