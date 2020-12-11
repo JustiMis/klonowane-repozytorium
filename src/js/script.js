@@ -346,16 +346,6 @@
         thisCart.dom[key] = thisCart.dom.wrapper.querySelectorAll(select.cart[key]);
       }
 
-      const payload = {
-        update: 'renderTotalKeys',
-        phone: 'phone',
-        address: 'address',
-        products: '',
-      }
-
-      for(let product of thisCart.products){
-        product
-      }
     }
 
     initActions(){
@@ -427,9 +417,18 @@
       const url = settings.db.url + '/' + settings.db.order;
 
       const payload = {
-        address: 'test',
+        totalNumber: thisCart.totalNumber,
+        subtotalPrice: thisCart.subtotalPrice,
         totalPrice: thisCart.totalPrice,
+        deliveryFee: thisCart.deliveryFee,
+        phone: thisCart.dom.phone.value,
+        address: thisCart.dom.address.value,
+        products: [],
       };
+
+      for(let product of thisCart.products){
+        payload.products.push(product.getData());
+      }
 
       const options = {
         method: 'POST',
@@ -520,6 +519,20 @@
 
         thisCartProduct.remove();
       });
+    }
+
+    getData(){
+      const thisCartProduct = this;
+
+      const productSummary = {
+        name: thisCartProduct.name,
+        price: thisCartProduct.price,
+        amount: thisCartProduct.amount,
+        params: thisCartProduct.params,
+      };
+      return productSummary;
+
+
     }
   }
 
